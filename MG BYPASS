@@ -1,0 +1,187 @@
+-- 💀 MG PAINEL ROBLOX - V39 SUPREME (SPEED FIXED) 💀
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+local Settings = {
+    Aimbot = false, Aimlock = false, SilentAim = false,
+    EspBox = false, EspHealth = false, EspLine = false,
+    Spinbot = false, SpinSpeed = 80, LoopBring = false, Magnetic = false,
+    InfJump = false, FallDelay = -12,
+    SpeedEnabled = false, WalkSpeed = 60, -- Aumentei o padrão pra você notar a diferença
+    Noclip = false, GhostInvis = false,
+    FovRadius = 150, FovVisible = false,
+    MainColor = Color3.fromRGB(255, 0, 0)
+}
+
+-- 1. MENSAGEM DE INÍCIO PREMIUM
+local WelcomeGui = Instance.new("ScreenGui", game.CoreGui)
+local WFrame = Instance.new("Frame", WelcomeGui)
+WFrame.Size = UDim2.new(0, 450, 0, 220); WFrame.Position = UDim2.new(0.5, -225, 0.5, -110)
+WFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10); Instance.new("UICorner", WFrame)
+local WStroke = Instance.new("UIStroke", WFrame); WStroke.Color = Settings.MainColor; WStroke.Thickness = 3
+
+local WText = Instance.new("TextLabel", WFrame)
+WText.Size = UDim2.new(1, -40, 0, 120); WText.Position = UDim2.new(0, 20, 0, 20); WText.BackgroundTransparency = 1
+WText.Text = "💎 MG PAINEL PREMIUM 💎\n\n OBRIGADO POR ADQUIRIR A VERSÃO PREMIUM NESSA VERSÃO VOCÊ TERA TODAS AS FUNÇÕES LIBERADAS!\n E SUPORTE TOTAL A QUALQUER BUG."; WText.TextColor3 = Color3.new(1, 1, 1); WText.Font = Enum.Font.GothamBlack; WText.TextSize = 18; WText.TextWrapped = true
+
+local WBtn = Instance.new("TextButton", WFrame)
+WBtn.Size = UDim2.new(0.6, 0, 0, 45); WBtn.Position = UDim2.new(0.2, 0, 0.7, 10); WBtn.BackgroundColor3 = Settings.MainColor
+WBtn.Text = "INICIAR"; WBtn.TextColor3 = Color3.new(1, 1, 1); WBtn.Font = Enum.Font.GothamBold; Instance.new("UICorner", WBtn)
+WBtn.MouseButton1Click:Connect(function() WelcomeGui:Destroy() end)
+
+local Themes = {Color3.fromRGB(255, 0, 0), Color3.fromRGB(0, 255, 0), Color3.fromRGB(0, 150, 255), Color3.fromRGB(255, 255, 0), Color3.fromRGB(255, 0, 255)}
+local CurrentTheme = 1
+local ToggleUpdateList = {}
+
+-- 2. GUI PRINCIPAL
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 520, 0, 460); Main.Position = UDim2.new(0.5, -260, 0.5, -230); Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10); Main.Visible = false; Instance.new("UICorner", Main)
+
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1, 0, 0, 50); Title.Text = "💎 MG PAINEL 💎"; Title.TextColor3 = Settings.MainColor; Title.Font = Enum.Font.GothamBlack; Title.TextSize = 24; Title.BackgroundTransparency = 1
+
+local OpenBtn = Instance.new("TextButton", ScreenGui); OpenBtn.Draggable = true; OpenBtn.Size = UDim2.new(0, 65, 0, 65); OpenBtn.Position = UDim2.new(0.5, -32, 0, 20); OpenBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15); OpenBtn.Text = "☢️"; OpenBtn.TextColor3 = Settings.MainColor; OpenBtn.TextSize = 40; Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(1, 0)
+OpenBtn.MouseButton1Click:Connect(function() Main.Visible = not Main.Visible end)
+
+local Pages = {}
+local Sidebar = Instance.new("Frame", Main); Sidebar.Size = UDim2.new(0, 130, 1, -70); Sidebar.Position = UDim2.new(0, 15, 0, 60); Sidebar.BackgroundTransparency = 1; Instance.new("UIListLayout", Sidebar).Padding = UDim.new(0, 8)
+local Container = Instance.new("Frame", Main); Container.Size = UDim2.new(1, -170, 1, -70); Container.Position = UDim2.new(0, 155, 0, 60); Container.BackgroundTransparency = 1
+
+local function CreatePage(name)
+    local sc = Instance.new("ScrollingFrame", Container); sc.Size = UDim2.new(1, 0, 1, 0); sc.BackgroundTransparency = 1; sc.Visible = false; sc.ScrollBarThickness = 0; Instance.new("UIListLayout", sc).Padding = UDim.new(0, 10)
+    Pages[name] = sc
+    local btn = Instance.new("TextButton", Sidebar); btn.Size = UDim2.new(1, 0, 0, 35); btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20); btn.Text = name; btn.TextColor3 = Color3.new(1, 1, 1); btn.Font = Enum.Font.GothamBold; Instance.new("UICorner", btn)
+    btn.MouseButton1Click:Connect(function() for _, p in pairs(Pages) do p.Visible = false end; sc.Visible = true end)
+end
+
+CreatePage("ARMA"); CreatePage("VISUAL"); CreatePage("PLAYER"); CreatePage("TROLL"); CreatePage("STATUS")
+Pages["ARMA"].Visible = true
+
+local function AddToggle(name, page, key)
+    local t = Instance.new("TextButton", page); t.Size = UDim2.new(0.95, 0, 0, 38); t.BackgroundColor3 = Color3.fromRGB(25, 25, 25); t.Text = name..": OFF"; t.TextColor3 = Color3.new(0.5, 0.5, 0.5); t.Font = Enum.Font.GothamBold; Instance.new("UICorner", t)
+    local function updateUI()
+        t.Text = name..": "..(Settings[key] and "ON" or "OFF")
+        t.TextColor3 = Settings[key] and Settings.MainColor or Color3.new(0.5, 0.5, 0.5)
+    end
+    t.MouseButton1Click:Connect(function() Settings[key] = not Settings[key]; updateUI() end)
+    table.insert(ToggleUpdateList, updateUI)
+end
+
+local function AddInput(text, page, key)
+    local i = Instance.new("TextBox", page); i.Size = UDim2.new(0.95, 0, 0, 35); i.BackgroundColor3 = Color3.fromRGB(20, 20, 20); i.PlaceholderText = text; i.Text = ""; i.TextColor3 = Color3.new(1, 1, 1); Instance.new("UICorner", i)
+    i.FocusLost:Connect(function() Settings[key] = tonumber(i.Text) or Settings[key] end)
+end
+
+AddToggle("Aimbot Suave", Pages.ARMA, "Aimbot"); AddToggle("Aimlock Head", Pages.ARMA, "Aimlock"); AddToggle("Silent Aim", Pages.ARMA, "SilentAim")
+AddToggle("Mostrar FOV", Pages.VISUAL, "FovVisible"); AddInput("Raio FOV", Pages.VISUAL, "FovRadius")
+AddToggle("ESP Box", Pages.VISUAL, "EspBox"); AddToggle("ESP Vida", Pages.VISUAL, "EspHealth"); AddToggle("ESP Linha", Pages.VISUAL, "EspLine")
+AddToggle("Speed Hack", Pages.PLAYER, "SpeedEnabled"); AddInput("Velocidade", Pages.PLAYER, "WalkSpeed")
+AddToggle("Infinite Jump", Pages.PLAYER, "InfJump"); AddInput("Fall Delay", Pages.PLAYER, "FallDelay")
+AddToggle("Noclip", Pages.PLAYER, "Noclip"); AddToggle("Ghost Invis", Pages.PLAYER, "GhostInvis")
+AddToggle("Spinbot", Pages.TROLL, "Spinbot"); AddInput("Spin Speed", Pages.TROLL, "SpinSpeed")
+AddToggle("Magnetic", Pages.TROLL, "Magnetic"); AddToggle("Loop Bring", Pages.TROLL, "LoopBring")
+
+local FPSLabel = Instance.new("TextLabel", Pages.STATUS); FPSLabel.Size = UDim2.new(0.95, 0, 0, 40); FPSLabel.BackgroundTransparency = 1; FPSLabel.Text = "FPS: ..."; FPSLabel.TextColor3 = Color3.new(1,1,1); FPSLabel.Font = Enum.Font.GothamBold; FPSLabel.TextSize = 18
+local ColorBtn = Instance.new("TextButton", Pages.STATUS); ColorBtn.Size = UDim2.new(0.95, 0, 0, 45); ColorBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30); ColorBtn.Text = "MUDAR TEMA"; ColorBtn.TextColor3 = Color3.new(1,1,1); ColorBtn.Font = Enum.Font.GothamBlack; Instance.new("UICorner", ColorBtn)
+ColorBtn.MouseButton1Click:Connect(function()
+    CurrentTheme = CurrentTheme + 1; if CurrentTheme > #Themes then CurrentTheme = 1 end
+    Settings.MainColor = Themes[CurrentTheme]; Title.TextColor3 = Settings.MainColor; OpenBtn.TextColor3 = Settings.MainColor; WStroke.Color = Settings.MainColor
+    for _, f in pairs(ToggleUpdateList) do f() end
+end)
+
+-- 3. ENGINE ESP & SISTEMAS
+local FOVCircle = Drawing.new("Circle"); FOVCircle.Thickness = 1; FOVCircle.Filled = false
+local espCache = {}
+
+local function createEsp(plr)
+    if plr == LocalPlayer then return end
+    local box = Drawing.new("Square"); box.Thickness = 2; box.Filled = false; box.Visible = false
+    local line = Drawing.new("Line"); line.Thickness = 1; line.Visible = false
+    local health = Drawing.new("Line"); health.Thickness = 2; health.Visible = false
+    espCache[plr] = {Box = box, Line = line, Health = health}
+end
+
+Players.PlayerAdded:Connect(createEsp)
+for _, p in pairs(Players:GetPlayers()) do createEsp(p) end
+
+local function getClosest()
+    local t, d = nil, Settings.FovRadius
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") and p.Character.Humanoid.Health > 0 then
+            local pos, vis = Camera:WorldToViewportPoint(p.Character.Head.Position)
+            local mag = (Vector2.new(pos.X, pos.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
+            if vis and mag < d then d = mag; t = p.Character.Head end
+        end
+    end
+    return t
+end
+
+-- SILENT AIM
+local mt = getrawmetatable(game); local old = mt.__namecall; setreadonly(mt, false)
+mt.__namecall = newcclosure(function(self, ...)
+    if Settings.SilentAim and getnamecallmethod() == "FindPartOnRayWithIgnoreList" then
+        local t = getClosest()
+        if t then return t, t.Position, t.CFrame.LookVector, t.Material end
+    end
+    return old(self, ...)
+end); setreadonly(mt, true)
+
+-- LOOP PRINCIPAL
+RunService.RenderStepped:Connect(function()
+    local char = LocalPlayer.Character; local hrp = char and char:FindFirstChild("HumanoidRootPart"); local hum = char and char:FindFirstChild("Humanoid")
+    FPSLabel.Text = "FPS: " .. math.floor(workspace:GetRealPhysicsFPS())
+    
+    FOVCircle.Visible = Settings.FovVisible; FOVCircle.Radius = Settings.FovRadius; FOVCircle.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2); FOVCircle.Color = Settings.MainColor
+
+    for plr, obj in pairs(espCache) do
+        local c = plr.Character; local h = c and c:FindFirstChild("Head"); local hu = c and c:FindFirstChild("Humanoid")
+        if h and hu and hu.Health > 0 then
+            local pos, vis = Camera:WorldToViewportPoint(h.Position)
+            if vis then
+                local sY, sX = 4000/pos.Z, 2500/pos.Z
+                obj.Box.Visible = Settings.EspBox; obj.Box.Size = Vector2.new(sX, sY); obj.Box.Position = Vector2.new(pos.X-sX/2, pos.Y-sY/2); obj.Box.Color = Settings.MainColor
+                obj.Line.Visible = Settings.EspLine; obj.Line.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y); obj.Line.To = Vector2.new(pos.X, pos.Y+sY/2); obj.Line.Color = Settings.MainColor
+                obj.Health.Visible = Settings.EspHealth; obj.Health.From = Vector2.new(pos.X-sX/2-5, pos.Y+sY/2); obj.Health.To = Vector2.new(pos.X-sX/2-5, (pos.Y+sY/2)-(sY*(hu.Health/hu.MaxHealth))); obj.Health.Color = Color3.new(0,1,0)
+            else obj.Box.Visible = false; obj.Line.Visible = false; obj.Health.Visible = false end
+        else obj.Box.Visible = false; obj.Line.Visible = false; obj.Health.Visible = false end
+    end
+
+    if hrp then
+        -- FIXED SPEED HACK (CFrame Method - Bypasses WalkSpeed Reset)
+        if Settings.SpeedEnabled and hum and hum.MoveDirection.Magnitude > 0 then
+            hrp.CFrame = hrp.CFrame + (hum.MoveDirection * (Settings.WalkSpeed / 50))
+        end
+
+        if Settings.Spinbot then hrp.CFrame *= CFrame.Angles(0, math.rad(Settings.SpinSpeed), 0) end
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                local tHrp = p.Character.HumanoidRootPart
+                if Settings.LoopBring then tHrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -5) end 
+                if Settings.Magnetic and (tHrp.Position - hrp.Position).Magnitude < 30 then
+                    tHrp.Velocity = (hrp.Position - tHrp.Position).Unit * 70
+                end
+            end
+        end
+    end
+
+    local target = getClosest()
+    if target and (Settings.Aimlock or Settings.Aimbot) then
+        local tCF = CFrame.new(Camera.CFrame.Position, target.Position)
+        Camera.CFrame = Settings.Aimlock and tCF or Camera.CFrame:Lerp(tCF, 0.15)
+    end
+
+    if hum then
+        if Settings.InfJump and hrp and hrp.Velocity.Y < 0 then hrp.Velocity = Vector3.new(hrp.Velocity.X, Settings.FallDelay, hrp.Velocity.Z) end
+    end
+end)
+
+UIS.JumpRequest:Connect(function() if Settings.InfJump and LocalPlayer.Character then LocalPlayer.Character.Humanoid:ChangeState("Jumping") end end)
+RunService.Stepped:Connect(function()
+    if Settings.Noclip and LocalPlayer.Character then
+        for _, v in pairs(LocalPlayer.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end
+    end
+end)
